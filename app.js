@@ -4,6 +4,28 @@ const port = process.env.PORT || 3001;
 
 app.get("/", (req, res) => res.type('html').send(html));
 
+// Express.js code to handle Meta's verification handshake
+app.get('/webhook', (req, res) => {
+  // Extract query parameters sent by Meta
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  // Check if mode and token are in the query
+  if (mode && token) {
+    // Check if mode is 'subscribe' and token matches your Render Env Variable
+    if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
+      console.log('WEBHOOK_VERIFIED');
+      // Respond with the challenge token as a plain text string
+      res.status(200).send(challenge);
+    } else {
+      // Responds with '403 Forbidden' if tokens do not match
+      res.sendStatus(403);      
+    }
+  }
+});
+
+
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 server.keepAliveTimeout = 120 * 1000;
